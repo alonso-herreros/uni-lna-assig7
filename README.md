@@ -157,6 +157,112 @@ siguiente:
 > automáticamente.  Si la omitimos, tendremos que activar la interfaz
 > manualmente (e.g. `sudo ifup enp10s0`).
 
+### 1.3. Servidor DHCP
+
+Aunque `isc-dhcp-server` es una opción popular, ya no tiene mantenimiento
+activo. Para este ejercicio se usará `dnsmasq`, un servidor DHCP y DNS muy
+ligero que además incluye servidor TFTP. Para instalarlo, ejecutamos:
+
+```bash
+sudo apt install dnsmasq
+```
+
+![Instalación de dnsmasq](img/1.3.1-apt-install-dnsmasq.png)
+
+#### Configuración de dnsmasq
+
+El archivo de configuración de `dnsmasq` se encuentra en `/etc/dnsmasq.conf`.
+Se pueden configurar los servicios de DHCP, DNS y TFTP. Para este apartado,
+solo se habilitará el servicio DHCP. Se establecerá un rango de direcciones IP
+de 10.1.0.103 a 10.1.0.250, anunciando la IP del servidor como *gateway* y un
+servidor DNS público (8.8.8.8):
+
+```ini
+port = 0 # Deshabilitar el servidor DNS
+
+interface = enp10s0              # Interfaz para DHCP (red interna)
+dhcp-range = 10.1.0.103,10.1.0.250,255.255.255.0,2h
+dhcp-option = 3,10.1.0.3         # Gateway: IP del router (servidor PXE)
+dhcp-option = 6,8.8.8.8          # Servidor DNS público
+dhcp-option = 28,10.1.0.255      # Dirección de broadcast
+
+# Enable logging
+log-dhcp
+log-queries
+```
+
+Con esta configuración, podemos iniciar el servidor usando la unidad de
+`systemd`:
+
+```bash
+sudo systemctl start dnsmasq
+```
+
+La siguiente captura de pantalla muestra la ejecución del comando y el estado
+del servicio tras iniciar:
+
+![Estado del servicio dnsmasq](img/1.3.2-systemctl-status.png)
+
+Para comprobar el funcionamiento del servidor DHCP, iniciaremos la máquina
+`linuxpxe` indicando que arranque por red mientras capturamos el tráfico de red
+en el servidor con `tcpdump`.
+
+#### Captura de tráfico
+
+Primero iniciaremos una captura con `tcpdump` en el servidor, filtrando por la
+interfaz `enp8s0`. En caso de no tenerlo instalado, se puede instalar con:
+
+```bash
+sudo apt install tcpdump
+```
+
+Para iniciar la captura y guardarla en un archivo, ejecutamos:
+
+```bash
+sudo tcpdump -i enp10s0 -w captures/1.3-dchp-test.pcap --print -lvv
+```
+
+Para más información, consultar `tcpdump(1)`.
+
+#### Prueba DHCP con la máquina cliente
+
+Al crear la máquina con Virt-Manager, el menú de arranque está deshabilitado
+por defecto. Desde la interfaz gráfica, en la vista de 'Details', en la sección
+'Boot Options' podemos habilitar el menú de arranque y, en la lista, incluir la
+tarjeta de red correspondiente. También podemos seleccionar el arranque por red
+como primera opción subiéndolo en la lista, e incluso dejarlo como única opción
+y deshabilitar el menú de arranque.
+
+La siguiente captura muestra la configuración con el menú de arranque
+habilitado y la tarjeta de red como primera opción:
+
+![Configuración del menú de arranque](img/1.3.3-boot-options.png)
+
+A continuación, arrancaremos la máquina cliente para comprobar que el servidor
+DHCP está funcionando correctamente. Al haber elegido el arranque por red como
+primera opción, no es necesario entrar al menú de arranque. La siguiente
+captura muestra el resultado:
+
+![Cliente probando DHCP](img/1.3.4-client-dhcp.png)
+
+> **Nota:** Algunas opciones de vídeo pueden no funcionar correctamente en
+> esta situación, como Virtio con display Spice. En este ejemplo se ha usado
+> QXL.
+
+#### Resultados de la captura
+
+La captura de tráfico de red se guardón en el archivo
+[`captures/1.3-dchp-test.pcap`](`captures/1.3-dchp-test.pcap`), y se se puede
+leer de nuevo usando `tcpdump`:
+
+```bash
+tcpdump -r captures/1.3-dchp-test.pcap -vv
+```
+
+A continuación se muestra una captura de pantalla con un extracto de la salida:
+
+![Tcpdump de la prueba DHCP](img/1.3.5-tcpdump.png)
+
 [shield-cc-by-sa]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 [shield-gitt]:     https://img.shields.io/badge/Degree-Telecommunication_Technologies_Engineering_|_UC3M-eee
 [shield-lna]:       https://img.shields.io/badge/Course-Linux_Networks_Administration-eee
