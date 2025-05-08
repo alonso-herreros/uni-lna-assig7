@@ -16,9 +16,12 @@ title: "Administración de Redes Linux - Entregable 7: PXE"
 Este documento contiene el registro del desarrollo de la actividad, incluyendo
 las instrucciones principales, las decisiones, y los resultados.
 
+> **Nota:** El desarrollo de esta actividad se ha realizado en una máquina
+> virtual con Debian 12. Puede haber diferencias en otras distribuciones.
+
 ## 1. Configuración de un servidor para instalar Debian con configuración cero
 
-### 1.1. Añadir interfaces en red interna.
+### 1.1. Añadir interfaces en red interna
 
 Para este paso, al tratarse de una máquina virtual QEMU administrada desde
 `virt-manager`, los pasos son distintos a los de una máquina administrada con
@@ -85,6 +88,74 @@ El menú 'Network selection' del último paso está oculto por defecto. Para
 seleccionar una red diferente a la predeterminada, debemos hacer click en el
 texto 'Network selection' para revelar la opción y seleccionar la red interna
 en el desplegable.
+
+### 1.2. Configuración estática de la nueva interfaz
+
+Lo primero que haremos será decidir las IPs que tomarán las máquinas virtuales.
+El rango `10.0.0.0/8` es un rango privado que podemos usar, y en este caso
+usaremos la subred `10.1.0.0/24` para la red interna:
+
+* `10.1.0.3/24` para el servidor PXE
+* IP del rango `10.1.0.103` al `10.1.0.250` para los clientes PXE (DHCP)
+
+#### Configuración de la IP estática en el servidor
+
+Para configurar la IP estática en el servidor, primero debemos obtener el
+nombre de la interfaz de red que virt-manager ha asignado a la máquina virtual.
+Por ejemplo, se puede obtener con `ip a`:
+
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable MD013 -->
+```text
+$ ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host noprefixroute
+       valid_lft forever preferred_lft forever
+2: enp2s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:c3:94:00 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.122.106/24 brd 192.168.122.255 scope global dynamic enp2s0
+       valid_lft 3294sec preferred_lft 3294sec
+    inet6 fe80::5054:ff:fec3:9400/64 scope link
+       valid_lft forever preferred_lft forever
+4: enp10s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 52:54:00:95:46:10 brd ff:ff:ff:ff:ff:ff
+    inet6 fe80::5054:ff:fe95:4610/64 scope link
+       valid_lft forever preferred_lft forever
+```
+<!-- markdownlint-restore -->
+
+La segunda interfaz (`enp2s0`) tiene una IP asignada, por lo que no puede ser
+la que acabamos de crear, sino que está conectada a la red por defecto. La
+interfaz conectada a la red interna en este caso es `enp10s0`.
+
+La configuración de la interfaz está en `/etc/network/interfaces`. Virt-manager
+ha creado automáticamente una entrada de configuración para esta interfaz:
+
+```text
+auto enp10s0
+iface enp0s10 inet dhcp
+```
+
+Para configurar la IP estática, editamos el archivo `/etc/network/interfaces`
+y cambiamos la configuración de la interfaz `enp10s0` a:
+
+```text
+auto enp10s0
+iface enp10s0 inet static
+    address 10.1.0.3/24
+```
+
+En este ejercicio, el contenido completo de `/etc/network/interfaces` es el
+siguiente:
+
+![Contenido de /etc/network/interfaces](img/1.2-interfaces.png)
+
+> **Info:** La línea `auto enp10s0` indica que la interfaz se debe activar
+> automáticamente.  Si la omitimos, tendremos que activar la interfaz
+> manualmente (e.g. `sudo ifup enp10s0`).
 
 [shield-cc-by-sa]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 [shield-gitt]:     https://img.shields.io/badge/Degree-Telecommunication_Technologies_Engineering_|_UC3M-eee
