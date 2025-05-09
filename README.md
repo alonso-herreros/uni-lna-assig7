@@ -267,7 +267,7 @@ captura muestra el resultado:
 
 #### Resultados de la captura
 
-La captura de tráfico de red se guardón en el archivo
+La captura de tráfico de red se guardó en el archivo
 [`captures/1.3-dchp-test.pcap`](`captures/1.3-dchp-test.pcap`), y se se puede
 leer de nuevo usando `tcpdump`:
 
