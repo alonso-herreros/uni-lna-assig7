@@ -358,6 +358,17 @@ La siguiente captura muestra la salida de este comando:
 
 ![Salida de nft list ruleset](img/1.4-nft-list-ruleset.png)
 
+> **Nota:** Para evitar tener que configurar las reglas de `nftables` cada vez
+> que se reinicie el servidor, se guardará la salida del comando anterior en el
+> archivo `/etc/nftables.conf`. Se puede hacer fácilmente con los siguientes
+> comandos una vez que la configuración esté completa:
+>
+> ```bash
+> echo '#!/usr/sbin/nft -f' | sudo tee /etc/nftables.conf
+> echo 'flush ruleset' | sudo tee -a /etc/nftables.conf
+> sudo nft list ruleset | sudo tee -a /etc/nftables.conf
+> ```
+
 ### 1.5. TFTP
 
 Ya que estamos usando `dnsmasq`, no necesitamos un servidor TFTP por separado,
