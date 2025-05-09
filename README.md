@@ -161,7 +161,8 @@ siguiente:
 
 Aunque `isc-dhcp-server` es una opción popular, ya no tiene mantenimiento
 activo. Para este ejercicio se usará `dnsmasq`, un servidor DHCP y DNS muy
-ligero que además incluye servidor TFTP. Para instalarlo, ejecutamos:
+ligero que además incluye un servidor TFTP (solo lectura). Para instalarlo,
+ejecutamos:
 
 ```bash
 sudo apt install dnsmasq
@@ -339,6 +340,65 @@ sudo nft list ruleset
 La siguiente captura muestra la salida de este comando:
 
 ![Salida de nft list ruleset](img/1.4-nft-list-ruleset.png)
+
+### 1.5. TFTP
+
+Ya que estamos usando `dnsmasq`, no necesitamos un servidor TFTP por separado,
+pero sí tendremos que obtener un instalador para enviar al cliente. En este
+caso, usaremos un Debian 12, que podemos adquirir con el paquete
+`debian-installer-12-netboot-amd64`:
+
+```bash
+sudo apt install debian-installer-12-netboot-amd64
+```
+
+Para habilitar el servidor TFTP integrado de `dnsmasq`, añadimos las siguientes
+líneas al archivo de configuración `/etc/dnsmasq.conf`:
+
+```ini
+enable-tftp
+tftp-root = /srv/tftp
+dhcp-boot = pxelinux.0
+```
+
+Es necesario crear el directorio `/srv/tftp`.
+
+```bash
+sudo mkdir -p /srv/tftp
+```
+
+> **Nota:** Podemos incluir en una nueva línea la opción `tftp-secure`, que
+> obliga a que el directorio y todos los archivos servidos sean propiedad del
+> usuario `dnsmasq`. En ese caso, debemos actualizar el propietario (e.g. con
+> `chown`).
+
+#### Comprobar el funcionamiento del servidor TFTP
+
+Para comprobar que el servidor TFTP está funcionando, podemos usar el cliente
+TFTP `tftp-hpa`, que se puede instalar con:
+
+```bash
+sudo apt install tftp-hpa
+```
+
+Primero crearemos un archivo de prueba en el servidor, por ejemplo
+`/srv/tftp/test`, recordando que debe ser propiedad de `dnsmasq`.  Podemos
+editarlo con un editor de texto o introducir texto directamente:
+
+```bash
+echo 'Hello World!' | sudo tee /srv/tftp/test
+```
+
+A continuación, desde un cliente (en la misma máquina u otra máquina con el
+cliente `tftp-hpa` instalado), podemos probar a descargar el archivo:
+
+```bash
+tftp 10.1.0.3 -c get test
+```
+
+La siguiente captura muestra el funcionamiento visto desde el cliente TFTP:
+
+![Cliente TFTP](img/1.5-tftp-client.png)
 
 [shield-cc-by-sa]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 [shield-gitt]:     https://img.shields.io/badge/Degree-Telecommunication_Technologies_Engineering_|_UC3M-eee
