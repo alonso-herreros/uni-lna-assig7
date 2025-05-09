@@ -11,6 +11,8 @@ title: "Administración de Redes Linux - Entregable 7: PXE"
 [![GITT][shield-gitt]][gitt]
 [![Administración de Redes Linux][shield-lna]][lna]
 
+![Full screen](img/global-pxe.png)
+
 * [Introducción](#introducción)
 * [1. Configuración de un servidor para instalar Debian con configuración cero](#1-configuración-de-un-servidor-para-instalar-debian-con-configuración-cero)
     * [1.1. Añadir interfaces en red interna](#11-añadir-interfaces-en-red-interna)
