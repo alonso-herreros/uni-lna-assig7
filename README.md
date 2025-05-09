@@ -400,6 +400,37 @@ La siguiente captura muestra el funcionamiento visto desde el cliente TFTP:
 
 ![Cliente TFTP](img/1.5-tftp-client.png)
 
+### 1.6. Configuración de PXE
+
+Para presentar la imagen de Debian al cliente, podríamos convertir el
+directorio TFTP en un enlace simbólico (solo si no estamos usando la opción
+`tftp-secure`) para que `/srv/tftp` apunte directamente a
+`/usr/lib/debian-installer/images/12/amd64/text`, directorio en el que se
+encuentran los archivos necesarios para el arranque por red (incluído
+`pxelinux.0`):
+
+```bash
+sudo rm -rf /srv/tftp
+sudo ln -s /usr/lib/debian-installer/images/12/amd64/text /srv/tftp
+```
+
+En la siguiente captura se puede ver el resultado, donde `/srv/tftp` es un
+enlace simbólico a `/usr/lib/debian-installer/images/12/amd64/text`, además
+de los archivos que contiene:
+
+![Enlace simbólico a /srv/tftp](img/1.6.1-ls-tftp.png)
+
+No es necesario reiniciar el servidor, los archivos se encontrarán cuando se
+requieran.
+
+#### Comprobar el funcionamiento de PXE
+
+Podemos probar a iniciar la máquina cliente `linuxpxe` de nuevo. Si todo ha ido
+bien, debería arrancar desde la red y mostrarnos el menú de instalación de
+Debian:
+
+![Menú de instalación de Debian](img/1.6.2-pxe-client.png)
+
 [shield-cc-by-sa]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 [shield-gitt]:     https://img.shields.io/badge/Degree-Telecommunication_Technologies_Engineering_|_UC3M-eee
 [shield-lna]:       https://img.shields.io/badge/Course-Linux_Networks_Administration-eee
