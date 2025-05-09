@@ -263,6 +263,83 @@ A continuación se muestra una captura de pantalla con un extracto de la salida:
 
 ![Tcpdump de la prueba DHCP](img/1.3.5-tcpdump.png)
 
+### 1.4. Configuración de router
+
+En el apartado anterior, configuramos el servidor DHCP para que se anunciara a
+sí mismo como *gateway*. En este apartado, lo configuraremos para que actúe
+como tal.
+
+#### Configuración de reenvío de paquetes
+
+Para que redirija el tráfico entre redes de distintas interfaces (e.g. entre la
+red interna y la externa), debemos habilitar el reenvío de paquetes modificando
+el archivo `/etc/sysctl.conf`: debemos descomentar o añadir la siguiente línea:
+
+```text
+net.ipv4.ip_forward = 1
+```
+
+Y, para aplicar los cambios, ejecutamos:
+
+```bash
+sudo sysctl -p
+```
+
+#### Configuración de NAT
+
+Debido a que la red interna usa un rango privado, hay que configurar NAT para
+permitir la salida a Internet <span style="font-size: 0.8em;">(o, en este caso,
+a la red 'externa', que suele ser una red interna del *host* con su propia
+configuración DHCP y NAT hacia el mundo exterior, <span style="font-size:
+0.8em;">que a su vez podría ser una red interna de una casa o empresa con su
+propio router con DHCP y NAT, <span style="font-size: 0.8em;">que a su vez
+podría ser una red interna de un proveedor de Internet usando
+CGNAT...)</span></span></span>
+
+Esta configuración se hará con `nftables`. En Debian 12, viene pre-instalado,
+y se puede habilitar e iniciar con `systemctl`:
+
+```bash
+sudo systemctl enable --now nftables
+```
+
+En Debian, la configuración que usa la unidad de `systemd` se puede modificar
+en el fichero `/etc/nftables.conf`. También se puede modificar por línea de
+comandos, dado que el *daemon* esté ejecutándose.
+
+```bash
+sudo nft add table ip nat
+sudo nft add chain ip nat postrouting \
+   '{ type nat hook postrouting priority srcnat; }'
+sudo nft add rule ip nat postrouting oifname "enp2s0" masquerade
+
+sudo nft add table ip filter
+sudo nft add chain ip filter forward \
+   '{ type filter hook forward priority filter; }'
+sudo nft add rule ip filter forward iifname "enp2s0" oifname "enp2s0" \
+   ct state '{ related, established }' accept
+sudo nft add rule ip filter forward iifname "enp10s0" oifname "enp10s0" accept
+```
+
+El primer bloque de reglas configura las reglas de NAT, especificando que, tras
+decidir el siguiente paso de un paquete, si el tráfico sale por la interfaz
+`enp2s0`, se aplicará el enmascaramiento, es decir, se cambiará la IP de origen
+por la IP de la interfaz `enp0s3`.
+
+El segundo bloque de reglas configura el *firewall*: permite todo el tráfico
+saliente de la interfaz `enp10s0` a la interfaz `enp2s0`, y el tráfico de
+respuesta desde `enp2s0` a `enp10s0` (solo si la conexión está establecida).
+
+Se puede comprobar la configuración de `nftables` ejecutando:
+
+```bash
+sudo nft list ruleset
+```
+
+La siguiente captura muestra la salida de este comando:
+
+![Salida de nft list ruleset](img/1.4-nft-list-ruleset.png)
+
 [shield-cc-by-sa]: https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg
 [shield-gitt]:     https://img.shields.io/badge/Degree-Telecommunication_Technologies_Engineering_|_UC3M-eee
 [shield-lna]:       https://img.shields.io/badge/Course-Linux_Networks_Administration-eee
