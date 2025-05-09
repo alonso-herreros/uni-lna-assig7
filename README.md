@@ -161,8 +161,12 @@ siguiente:
 
 Aunque `isc-dhcp-server` es una opción popular, ya no tiene mantenimiento
 activo. Para este ejercicio se usará `dnsmasq`, un servidor DHCP y DNS muy
-ligero que además incluye un servidor TFTP (solo lectura). Para instalarlo,
-ejecutamos:
+ligero que además incluye un servidor TFTP (solo lectura). La página de
+[dnsmasq en la Wiki de Arch](https://wiki.archlinux.org/title/Dnsmasq) contiene
+información útil sobre la instalación y el uso como servidor DHCP, DNS, TFTP y
+PXE.
+
+Para instalarlo en Debian, ejecutamos:
 
 ```bash
 sudo apt install dnsmasq
