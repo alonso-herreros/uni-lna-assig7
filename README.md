@@ -2,7 +2,7 @@
 title: "Administración de Redes Linux - Entregable 7: PXE"
 ---
 
-## Administración de Redes Linux
+## Administración de Redes Linux <!-- omit in toc -->
 
 # Entregable 7: PXE
 
@@ -10,6 +10,17 @@ title: "Administración de Redes Linux - Entregable 7: PXE"
 [![CC BY-SA 4.0][shield-cc-by-sa]][cc-by-sa]
 [![GITT][shield-gitt]][gitt]
 [![Administración de Redes Linux][shield-lna]][lna]
+
+* [Introducción](#introducción)
+* [1. Configuración de un servidor para instalar Debian con configuración cero](#1-configuración-de-un-servidor-para-instalar-debian-con-configuración-cero)
+    * [1.1. Añadir interfaces en red interna](#11-añadir-interfaces-en-red-interna)
+    * [1.2. Configuración estática de la nueva interfaz](#12-configuración-estática-de-la-nueva-interfaz)
+    * [1.3. Servidor DHCP](#13-servidor-dhcp)
+    * [1.4. Configuración de router](#14-configuración-de-router)
+    * [1.5. TFTP](#15-tftp)
+    * [1.6. Configuración de PXE](#16-configuración-de-pxe)
+
+---
 
 ## Introducción
 
